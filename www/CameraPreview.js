@@ -48,4 +48,12 @@ CameraPreview.disable = function(disable) {
   exec(null, null, PLUGIN_NAME, "disable", [disable]);
 };
 
+CameraPreview.toFront = function() {
+  exec(null, null, PLUGIN_NAME, "toFront", []);
+};
+CameraPreview.toBack = function() {
+  exec(null, null, PLUGIN_NAME, "toBack", []);
+};
+
+
 module.exports = CameraPreview;

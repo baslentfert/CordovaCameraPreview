@@ -26,6 +26,10 @@ public class CameraPreview extends CordovaPlugin implements CameraActivity.Camer
 	private final String takePictureAction = "takePicture";
 	private final String showCameraAction = "showCamera";
 	private final String hideCameraAction = "hideCamera";
+    
+    private final String cameraToFrontAction = "toFront";
+    private final String cameraToBackAction = "toBack";
+    
 
 	private CameraActivity fragment;
 	private CallbackContext takePictureCallbackContext;
@@ -62,6 +66,15 @@ public class CameraPreview extends CordovaPlugin implements CameraActivity.Camer
 	    else if (switchCameraAction.equals(action)){
 		    return switchCamera(args, callbackContext);
 	    }
+        
+        //-- custom addittie
+        else if (cameraToFrontAction.equals(action)){
+            return toFront(args, callbackContext);
+        }
+        else if (cameraToBackAction.equals(action)){
+            return toBack(args, callbackContext);
+        }
+        
 
     	return false;
     }
@@ -242,6 +255,29 @@ public class CameraPreview extends CordovaPlugin implements CameraActivity.Camer
 		return true;
 	}
 
+
+    
+    private boolean toFront(final JSONArray args, CallbackContext callbackContext) {
+        if(fragment == null){
+            return false;
+        }
+        Log.d(TAG, "toFront");
+        containerView.setAlpha(Float.parseFloat(args.getString(8)));
+        containerView.bringToFront();
+        return true;
+    }
+    private boolean toBack(final JSONArray args, CallbackContext callbackContext) {
+        if(fragment == null){
+            return false;
+        }
+        Log.d(TAG, "toBack");
+        webView.getView().setBackgroundColor(0x00000000);
+        ((ViewGroup)webView.getView()).bringToFront();
+        return true;
+    }
+    
+
+    
     private boolean setOnPictureTakenHandler(JSONArray args, CallbackContext callbackContext) {
     	Log.d(TAG, "setOnPictureTakenHandler");
 	    takePictureCallbackContext = callbackContext;
