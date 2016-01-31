@@ -262,6 +262,7 @@ public class CameraPreview extends CordovaPlugin implements CameraActivity.Camer
             return false;
         }
         Log.d(TAG, "toFront");
+        FrameLayout containerView = (FrameLayout)cordova.getActivity().findViewById(containerViewId);
         containerView.setAlpha(Float.parseFloat(args.getString(8)));
         containerView.bringToFront();
         return true;
@@ -271,6 +272,7 @@ public class CameraPreview extends CordovaPlugin implements CameraActivity.Camer
             return false;
         }
         Log.d(TAG, "toBack");
+        FrameLayout containerView = (FrameLayout)cordova.getActivity().findViewById(containerViewId);
         webView.getView().setBackgroundColor(0x00000000);
         ((ViewGroup)webView.getView()).bringToFront();
         return true;
