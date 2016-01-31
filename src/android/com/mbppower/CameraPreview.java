@@ -263,7 +263,7 @@ public class CameraPreview extends CordovaPlugin implements CameraActivity.Camer
         }
         Log.d(TAG, "toFront");
         FrameLayout containerView = (FrameLayout)cordova.getActivity().findViewById(containerViewId);
-        containerView.setAlpha(Float.parseFloat(args.getString(8)));
+//        containerView.setAlpha(Float.parseFloat(args.getString(8)));
         containerView.bringToFront();
         return true;
     }
