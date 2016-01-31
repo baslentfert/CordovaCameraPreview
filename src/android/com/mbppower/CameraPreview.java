@@ -265,6 +265,7 @@ public class CameraPreview extends CordovaPlugin implements CameraActivity.Camer
         Log.d(TAG, "toFront");
         FrameLayout containerView = (FrameLayout)cordova.getActivity().findViewById(containerViewId);
 //        containerView.setAlpha(Float.parseFloat(args.getString(8)));
+        containerView.setX(0);
         containerView.bringToFront();
         return true;
     }
@@ -278,8 +279,9 @@ public class CameraPreview extends CordovaPlugin implements CameraActivity.Camer
         FrameLayout containerView = (FrameLayout)cordova.getActivity().findViewById(containerViewId);
         //        containerView.setAlpha(Float.parseFloat(args.getString(8)));
 //        containerView.bringToFront();
+//        sendViewToBack(containerView);
         
-        sendViewToBack(containerView);
+        containerView.setX(100000);
         
         return true;
     }
