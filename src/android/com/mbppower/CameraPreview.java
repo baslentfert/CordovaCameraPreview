@@ -272,12 +272,24 @@ public class CameraPreview extends CordovaPlugin implements CameraActivity.Camer
             return false;
         }
         Log.d(TAG, "toBack");
-        webView.getView().setBackgroundColor(0x00000000);
-        ((ViewGroup)webView.getView()).bringToFront();
+//        webView.getView().setBackgroundColor(0x00000000);
+//        ((ViewGroup)webView.getView()).bringToFront();
+        FrameLayout containerView = (FrameLayout)cordova.getActivity().findViewById(containerViewId);
+        //        containerView.setAlpha(Float.parseFloat(args.getString(8)));
+//        containerView.bringToFront();
+        
+        sendViewToBack(containerView);
+        
         return true;
     }
     
-
+    public static void sendViewToBack(final View child) {
+        final ViewGroup parent = (ViewGroup)child.getParent();
+        if (null != parent) {
+            parent.removeView(child);
+            parent.addView(child, 0);
+        }
+    }
     
     private boolean setOnPictureTakenHandler(JSONArray args, CallbackContext callbackContext) {
     	Log.d(TAG, "setOnPictureTakenHandler");
