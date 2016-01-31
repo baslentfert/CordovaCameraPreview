@@ -272,7 +272,6 @@ public class CameraPreview extends CordovaPlugin implements CameraActivity.Camer
             return false;
         }
         Log.d(TAG, "toBack");
-        FrameLayout containerView = (FrameLayout)cordova.getActivity().findViewById(containerViewId);
         webView.getView().setBackgroundColor(0x00000000);
         ((ViewGroup)webView.getView()).bringToFront();
         return true;
