@@ -8,7 +8,11 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
- import android.view.View;
+import android.view.View;
+
+import android.content.Intent;
+import android.graphics.Bitmap;
+
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
@@ -25,8 +29,10 @@ public class CameraPreview extends CordovaPlugin implements CameraActivity.Camer
 	private final String stopCameraAction = "stopCamera";
 	private final String switchCameraAction = "switchCamera";
 	private final String takePictureAction = "takePicture";
+	private final String takePictureAction2 = "takePicture2";	//-- echte foto maken met hogere resolutie
 	private final String showCameraAction = "showCamera";
 	private final String hideCameraAction = "hideCamera";
+   	private final String clearPreview = "clearPreview";
     
     private final String cameraToFrontAction = "toFront";
     private final String cameraToBackAction = "toBack";
@@ -35,6 +41,7 @@ public class CameraPreview extends CordovaPlugin implements CameraActivity.Camer
 	private CameraActivity fragment;
 	private CallbackContext takePictureCallbackContext;
 	private int containerViewId = 1;
+	
 	public CameraPreview(){
 		super();
 		Log.d(TAG, "Constructing");
@@ -50,7 +57,12 @@ public class CameraPreview extends CordovaPlugin implements CameraActivity.Camer
     		return startCamera(args, callbackContext);
     	}
 	    else if (takePictureAction.equals(action)){
+			Log.d(TAG,"takePictureAction.equals(action)" + action);
 		    return takePicture(args, callbackContext);
+	    }
+	    else if (takePictureAction2.equals(action)){
+			Log.d(TAG,"takePictureAction2.equals(action)" + action);
+		    return takePicture2(args, callbackContext);
 	    }
 	    else if (setColorEffectAction.equals(action)){
 	      return setColorEffect(args, callbackContext);
@@ -67,6 +79,10 @@ public class CameraPreview extends CordovaPlugin implements CameraActivity.Camer
 	    else if (switchCameraAction.equals(action)){
 		    return switchCamera(args, callbackContext);
 	    }
+	    else if (clearPreview.equals(action)){
+		    return clearPreview(args, callbackContext);
+	    }
+		
         
         //-- custom addittie
         else if (cameraToFrontAction.equals(action)){
@@ -93,15 +109,21 @@ public class CameraPreview extends CordovaPlugin implements CameraActivity.Camer
 
 				try {
 					DisplayMetrics metrics = cordova.getActivity().getResources().getDisplayMetrics();
+					
+			        Log.d(TAG, "getMetrics: dm.density:" + metrics.density + " dm.densityDpi:" + metrics.densityDpi + " dm.widthPixels:" + metrics.widthPixels + " dm.heightPixels:" + metrics.heightPixels + " dm.scaledDensity:" + metrics.scaledDensity + " dm.xdpi:"+metrics.xdpi + " dm.ydpi:" + metrics.ydpi);
+					
 					int x = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, args.getInt(0), metrics);
 					int y = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, args.getInt(1), metrics);
 					int width = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, args.getInt(2), metrics);
 					int height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, args.getInt(3), metrics);
+
+			        Log.d(TAG, "dims fragment: x:" + x + " y:" + y + " w:" + width + " h:" + height );
+
 					String defaultCamera = args.getString(4);
 					Boolean tapToTakePicture = args.getBoolean(5);
 					Boolean dragEnabled = args.getBoolean(6);
 					Boolean toBack = args.getBoolean(7);
-
+					
 					fragment.defaultCamera = defaultCamera;
 					fragment.tapToTakePicture = tapToTakePicture;
 					fragment.dragEnabled = dragEnabled;
@@ -112,7 +134,7 @@ public class CameraPreview extends CordovaPlugin implements CameraActivity.Camer
 					if(containerView == null){
 						containerView = new FrameLayout(cordova.getActivity().getApplicationContext());
 						containerView.setId(containerViewId);
-
+						
 						FrameLayout.LayoutParams containerLayoutParams = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT);
 						cordova.getActivity().addContentView(containerView, containerLayoutParams);
 					}
@@ -126,14 +148,15 @@ public class CameraPreview extends CordovaPlugin implements CameraActivity.Camer
 						containerView.setAlpha(Float.parseFloat(args.getString(8)));
 						containerView.bringToFront();
 					}
-
+					
 					//add the fragment to the container
 					FragmentManager fragmentManager = cordova.getActivity().getFragmentManager();
 					FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 					fragmentTransaction.add(containerView.getId(), fragment);
 					fragmentTransaction.commit();
 				}
-				catch(Exception e){
+				catch(Exception e) {
+					Log.d(TAG,"startCamera exception",e);
 					e.printStackTrace();
 				}
             }
@@ -142,6 +165,7 @@ public class CameraPreview extends CordovaPlugin implements CameraActivity.Camer
 	}
 	private boolean takePicture(final JSONArray args, CallbackContext callbackContext) {
 		if(fragment == null){
+			Log.d(TAG,"takePicture no fragment");
 			return false;
 		}
 		PluginResult pluginResult = new PluginResult(PluginResult.Status.OK);
@@ -150,9 +174,37 @@ public class CameraPreview extends CordovaPlugin implements CameraActivity.Camer
 		try {
 			double maxWidth = args.getDouble(0);
 			double maxHeight = args.getDouble(1);
+//			Log.d(TAG,"takePicture exception", e);
+			
 			fragment.takePicture(maxWidth, maxHeight);
 		}
-		catch(Exception e){
+		catch(Exception e) {
+			Log.d(TAG,"takePicture exception", e);
+			e.printStackTrace();
+			return false;
+		}
+		return true;
+	}
+
+	//-- BL 20160211
+	private boolean takePicture2(final JSONArray args, CallbackContext callbackContext) {
+		if(fragment == null){
+			Log.d(TAG,"takePicture no fragment");
+			return false;
+		}
+		PluginResult pluginResult = new PluginResult(PluginResult.Status.OK);
+		pluginResult.setKeepCallback(true);
+		callbackContext.sendPluginResult(pluginResult);
+		
+		try {
+			double maxWidth = args.getDouble(0);
+			double maxHeight = args.getDouble(1);
+//			Log.d(TAG,"takePicture exception", e);
+			
+			fragment.takePicture2(maxWidth, maxHeight);
+		}
+		catch(Exception e) {
+			Log.d(TAG,"takePicture exception", e);
 			e.printStackTrace();
 			return false;
 		}
@@ -167,47 +219,62 @@ public class CameraPreview extends CordovaPlugin implements CameraActivity.Camer
 		takePictureCallbackContext.sendPluginResult(pluginResult);
 	}
 
+	//-- BL 20160211
+/*
+	@Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent intent) 
+    {
+        if (requestCode == TAKE_PICTURE && resultCode == RESULT_OK) {
+            Bitmap photo = (Bitmap)intent.getExtras().get("data"); 
+            //-- call fragment
+
+//			ivThumbnailPhoto.setImageBitmap(photo);
+//			ivThumbnailPhoto.setVisibility(View.VISIBLE);
+        }
+    }
+*/
+
 	private boolean setColorEffect(final JSONArray args, CallbackContext callbackContext) {
-	  if(fragment == null){
-	    return false;
-	  }
+		if(fragment == null){
+		return false;
+		}
+		
+		Camera camera = fragment.getCamera();
+		if (camera == null){
+		  return true;
+		}
+		
+		Camera.Parameters params = camera.getParameters();
 
-    Camera camera = fragment.getCamera();
-    if (camera == null){
-      return true;
-    }
-
-    Camera.Parameters params = camera.getParameters();
-
-    try {
-      String effect = args.getString(0);
-
-      if (effect.equals("aqua")) {
-        params.setColorEffect(Camera.Parameters.EFFECT_AQUA);
-      } else if (effect.equals("blackboard")) {
-        params.setColorEffect(Camera.Parameters.EFFECT_BLACKBOARD);
-      } else if (effect.equals("mono")) {
-        params.setColorEffect(Camera.Parameters.EFFECT_MONO);
-      } else if (effect.equals("negative")) {
-        params.setColorEffect(Camera.Parameters.EFFECT_NEGATIVE);
-      } else if (effect.equals("none")) {
-        params.setColorEffect(Camera.Parameters.EFFECT_NONE);
-      } else if (effect.equals("posterize")) {
-        params.setColorEffect(Camera.Parameters.EFFECT_POSTERIZE);
-      } else if (effect.equals("sepia")) {
-        params.setColorEffect(Camera.Parameters.EFFECT_SEPIA);
-      } else if (effect.equals("solarize")) {
-        params.setColorEffect(Camera.Parameters.EFFECT_SOLARIZE);
-      } else if (effect.equals("whiteboard")) {
-        params.setColorEffect(Camera.Parameters.EFFECT_WHITEBOARD);
-      }
-
-  	  fragment.setCameraParameters(params);
-	    return true;
-    } catch(Exception e) {
-      e.printStackTrace();
-      return false;
-    }
+		try {
+		  String effect = args.getString(0);
+		
+		  if (effect.equals("aqua")) {
+			params.setColorEffect(Camera.Parameters.EFFECT_AQUA);
+		  } else if (effect.equals("blackboard")) {
+			params.setColorEffect(Camera.Parameters.EFFECT_BLACKBOARD);
+		  } else if (effect.equals("mono")) {
+			params.setColorEffect(Camera.Parameters.EFFECT_MONO);
+		  } else if (effect.equals("negative")) {
+			params.setColorEffect(Camera.Parameters.EFFECT_NEGATIVE);
+		  } else if (effect.equals("none")) {
+			params.setColorEffect(Camera.Parameters.EFFECT_NONE);
+		  } else if (effect.equals("posterize")) {
+			params.setColorEffect(Camera.Parameters.EFFECT_POSTERIZE);
+		  } else if (effect.equals("sepia")) {
+			params.setColorEffect(Camera.Parameters.EFFECT_SEPIA);
+		  } else if (effect.equals("solarize")) {
+			params.setColorEffect(Camera.Parameters.EFFECT_SOLARIZE);
+		  } else if (effect.equals("whiteboard")) {
+			params.setColorEffect(Camera.Parameters.EFFECT_WHITEBOARD);
+		  }
+		
+		  fragment.setCameraParameters(params);
+			return true;
+		} catch(Exception e) {
+		  e.printStackTrace();
+		  return false;
+		}
 	}
 
 	private boolean stopCamera(final JSONArray args, CallbackContext callbackContext) {
@@ -255,6 +322,15 @@ public class CameraPreview extends CordovaPlugin implements CameraActivity.Camer
 		fragment.switchCamera();
 		return true;
 	}
+	
+	private boolean clearPreview(final JSONArray args, CallbackContext callbackContext) {
+		if(fragment == null){
+			return false;
+		}
+		fragment.clearPreview();
+		return true;
+	}
+	
 
 
     
